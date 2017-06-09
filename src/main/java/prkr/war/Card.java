@@ -6,22 +6,16 @@ public class Card {
 	public enum Suit {	CLUBS, DIAMONDS, HEARTS, SPADES; }
 	public enum Rank { 	TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE; }
 	
-	private Rank rank;
-	private Suit suit;
+	private final Rank rank;
+	private final Suit suit;
 	
 	Card(Rank rank, Suit suit) {
-		this.setRank(rank);
-		this.setSuit(suit);
+		this.rank = rank;
+		this.suit = suit;
 	}
 	
-	private void setRank(Rank rank) {
-		this.rank = rank;
-	}
 	public Rank getRank() {
 		return this.rank;
-	}
-	private void setSuit(Suit suit) {
-		this.suit = suit;
 	}
 	public Suit getSuit() {
 		return this.suit;
