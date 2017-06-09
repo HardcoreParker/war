@@ -95,6 +95,18 @@ public class WarGameTest {
 		assert(players.get(0).getDeck().size() == 1);
 	}
 	
+	@Test
+	public void removePlayer_test() {
+		setUpWithNPlayersExceptionSafe(3);
+		
+		assertTrue(warGame.getPlayers().contains(new Player("Player 0")));
+		
+		warGame.removePlayer(new Player("Player 0"));
+		
+		assert(warGame.getPlayers().size() == 2);
+		assertFalse(warGame.getPlayers().contains(new Player("Player 0")));
+	}
+	
 	private void setUpWithNPlayers(int players) throws TooManyPlayersException {
 		for (int i = 0; i < players; i++) {
 			try {

@@ -44,6 +44,10 @@ public class WarGame {
     	}
     }
     
+    public void removePlayer(Player player) {
+    	players.remove(player);
+    }
+    
     public ArrayList<Player> getPlayers() {
     	return this.players;
     }
