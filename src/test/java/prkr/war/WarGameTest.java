@@ -3,12 +3,16 @@ package prkr.war;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import exceptions.DuplicatePlayerException;
 import exceptions.TooManyPlayersException;
+import prkr.war.Card.Rank;
+import prkr.war.Card.Suit;
 
 public class WarGameTest {
 
@@ -105,6 +109,24 @@ public class WarGameTest {
 		
 		assert(warGame.getPlayers().size() == 2);
 		assertFalse(warGame.getPlayers().contains(new Player("Player 0")));
+	}
+	
+	@Test
+	public void compare_two_players_test() {
+		Card aceOfSpades = new Card(Rank.ACE, Suit.SPADES);
+		Player player1 = new Player("Player 1");
+		
+		Card twoOfSpades = new Card(Rank.TWO, Suit.SPADES);
+		Player player2 = new Player("Player 2");
+		
+		HashMap<Card, Player> cardsInWar = new HashMap<Card, Player>();
+		
+		cardsInWar.put(aceOfSpades, player1);
+		cardsInWar.put(twoOfSpades, player2);
+		
+		HashMap<Player, LinkedList<Card>> warResult = warGame.war(cardsInWar);
+
+		assert(warResult.get(key))
 	}
 	
 	private void setUpWithNPlayers(int players) throws TooManyPlayersException {

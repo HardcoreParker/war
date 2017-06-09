@@ -1,6 +1,10 @@
 package prkr.war;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import exceptions.DuplicatePlayerException;
 import exceptions.TooManyPlayersException;
@@ -42,6 +46,45 @@ public class WarGame {
         		player.getDeck().addFirst(deck.getCards().pop());
         	}
     	}
+    }
+        
+	private class RoundProposal {
+		private final Card.Rank rank;
+		private final Player player;
+		RoundProposal(Card.Rank rank, Player player) {
+			this.rank = rank;
+			this.player = player;
+		}
+	}
+    
+    public HashMap<Player, LinkedList<Card>> initRound(HashMap<Card, Player> offerings) {
+    	HashMap<Card.Rank, AtomicInteger> ranksAndOccurrences = new HashMap<Card.Rank, AtomicInteger>();
+
+		for(Card card : offerings.keySet()) {
+			Set<Card> cards = offerings.keySet();
+			if(cards.contains(card.getRank())) { // refactor to just check contains rank
+				ranksAndOccurrences.get(card.getRank()).
+				integer++;
+			}
+		}
+    	
+    	HashMap<Card.Rank, Player> ranksInvolvedInRound = new HashMap<Card.Rank, Player>();
+    	
+		Card highCard = null;
+		Player winner = null;
+		for(Card currentCard : cardsInRound.keySet()) {
+			if(highCard == null) {
+				highCard = currentCard;
+				winner = cardsInRound.get(currentCard);
+			} else if (currentCard.getRank().ordinal() > highCard.getRank().ordinal()) {
+				highCard = currentCard;
+				winner = cardsInRound.get(currentCard);
+			} else if (currentCard.getRank().ordinal() == highCard.getRank().ordinal()) {
+				HashMap<Card, Player> newWar = new HashMap<Card, Player>();
+			}
+		}
+    	
+    	return null;
     }
     
     public void removePlayer(Player player) {
