@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import exceptions.DuplicatePlayerException;
-import exceptions.TooManyPlayersException;
 import prkr.war.Card.Rank;
+import prkr.war.exceptions.DuplicatePlayerException;
+import prkr.war.exceptions.TooManyPlayersException;
 
 public class WarGame {
 	private ArrayList<Player> players = new ArrayList<Player>();
@@ -31,10 +31,20 @@ public class WarGame {
     	players.add(new Player(name));
     }
     
+    public ArrayList<Player> getPlayers() {
+    	return this.players;
+    }
+    
+    public void removePlayer(Player player) {
+    	players.remove(player);
+    }
+    
     /**
      * For every player involved in the game, distributes cards equally to their respective decks.
      * Cards are removed from the supplied deck as they are distribued. Any cards remaining
-     * after equal distribution are not removed from the deck and need to be handled separately.
+     * after equal distribution are not removed from the supplied deck and need to be handled separately.
+     * 
+     * TODO - Handle remaining cards separately
      * 
      * @param deck
      */
@@ -49,16 +59,13 @@ public class WarGame {
     }
     
     public void beginBattle() {
-    	ArrayList<BattleEntry> entries = new ArrayList<BattleEntry>();
+    	HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
     	for(Player player : getPlayers()) {
     		Card card = player.getDeck().removeFirst();
     		entries.add(new BattleEntry(card, player));
     	}
     	
-    	BattleResolution resolution = compareAllCardsInRound(entries);
-    	
-    	Player battleWinner = resolution.getWinner();
-    	battleWinner.getDeck().addAll(resolution.getPot());
+    	BattleResolution resolution = initiateBattle(entries);
     }
     
     /** 
@@ -74,18 +81,22 @@ public class WarGame {
      * @param battleEntries
      * @return RoundResolution
      */
-    public BattleResolution compareAllCardsInRound(ArrayList<BattleEntry> battleEntries) {
-    	HashMap<Rank, Set<BattleEntry>> rankMatches = gatherMatchedRanksAndEntries(battleEntries);
-		ArrayList<Card> pot = new ArrayList<Card>();
+    public BattleResolution initiateBattle(HashSet<BattleEntry> battleEntries) {
+    	HashMap<Rank, HashSet<BattleEntry>> mapOfPairs = identifyPairs(battleEntries);
+		HashSet<Card> pot = new HashSet<Card>();
 		Player winner = null;
 		Card highCard = null;
 
-    	if(rankMatches.size() > 0) { // Decides if there will be a war
-    		for(Rank rank : rankMatches.keySet()) { // Set up a particular war for this rank
-    			Set<BattleEntry> entriesInAParticularWar = rankMatches.get(rank);
+		// TODO - reverse if and else
+    	if(mapOfPairs.size() > 0) { // Decides if there will be a war
+    		// Add cards to pot
+    		for(Rank rank : mapOfPairs.keySet()) { // Set up a particular war for this rank
+    			HashSet<BattleEntry> entriesInAParticularWar = mapOfPairs.get(rank);
     			
     			BattleResolution battleResolution = null;
     			
+    			// TODO - Next - Since we had a bug from initiateSuitResolution and initWar being different
+    			// by adding cards to pot at different/non existant times, it's time to make them 1 method 
     			if(anyPlayersHaveEmptyDeck(entriesInAParticularWar)) {
     				// Evaluate winner based on suit strength
     				battleResolution = initiateSuitResolution(entriesInAParticularWar);
@@ -94,8 +105,14 @@ public class WarGame {
     				battleResolution = initWar(entriesInAParticularWar);
     			}
     			
+    			// TODO - Pull all of these ordinal comparisons out to a method that takes compareSuit as a bool
     			// always add the pot
     			pot.addAll(battleResolution.getPot());
+    			
+    			for(BattleEntry entry : battleEntries) {
+    				pot.add(entry.getCard());
+    			}
+    			
     			if(highCard == null || battleResolution.getWinningCard().getRank().ordinal() > highCard.getRank().ordinal()) { 
     				/* Note - Shouldn't have to worry about changing the highCard due to a higher suit strength - this would get resolved in initiateSuitResolution */
     				highCard = battleResolution.getWinningCard();
@@ -107,6 +124,8 @@ public class WarGame {
     			Card card = entry.getCard();
     			Player player = entry.getPlayer();
     			pot.add(card); // Add this card to the 'pot'
+    			
+    			// Assign new highCard if current card is eligible
     			if(highCard == null) {
     				highCard = card;
     				winner = player;
@@ -118,14 +137,19 @@ public class WarGame {
     	}
     	
     	BattleResolution resolution = new BattleResolution(winner, pot, highCard);
-    	
+    	    	
     	return resolution;
     }
+
+	private void awardWinner(BattleResolution resolution) {
+		Player battleWinner = resolution.getWinner();
+    	battleWinner.getDeck().addAll(resolution.getPot());
+	}
 
 	protected BattleResolution initiateSuitResolution(Set<BattleEntry> entriesInAParticularWar) {
     	Card winningCard = null;
     	Player winner = null;
-    	ArrayList<Card> pot = new ArrayList<Card>();
+    	HashSet<Card> pot = new HashSet<Card>();
     	for(BattleEntry entry : entriesInAParticularWar) {
     		// Always add to pot
     		pot.add(entry.getCard());
@@ -149,19 +173,19 @@ public class WarGame {
     	return false;
 	}
 
-    protected BattleResolution initWar(Set<BattleEntry> entriesInAParticularWar) {
-    	ArrayList<Card> pot = new ArrayList<Card>(); // List because order is important
+    protected BattleResolution initWar(HashSet<BattleEntry> entriesInAParticularWar) {
+    	HashSet<Card> pot = new HashSet<Card>();
 
-    	ArrayList<BattleEntry> battleEntries = new ArrayList<BattleEntry>();
+    	// New entries for next battle
+    	HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
 
     	for(BattleEntry entry : entriesInAParticularWar) {
     		Player player = entry.getPlayer();
     		Card card = player.getDeck().removeFirst();
-    		pot.add(card);
     		battleEntries.add(new BattleEntry(card, player));
     	}
     	
-    	BattleResolution resolution = compareAllCardsInRound(battleEntries);
+    	BattleResolution resolution = initiateBattle(battleEntries);
     	
     	pot.addAll(resolution.getPot());
     	
@@ -175,8 +199,8 @@ public class WarGame {
 	 * @param battleEntries
 	 * @return
 	 */
-    protected HashMap<Rank, Set<BattleEntry>> gatherMatchedRanksAndEntries(ArrayList<BattleEntry> battleEntries) {
-    	HashMap<Rank, Set<BattleEntry>> matchesAndEntries = new HashMap<Rank, Set<BattleEntry>>();
+    protected HashMap<Rank, HashSet<BattleEntry>> identifyPairs(HashSet<BattleEntry> battleEntries) {
+    	HashMap<Rank, HashSet<BattleEntry>> matchesAndEntries = new HashMap<Rank, HashSet<BattleEntry>>();
     	
 		for(BattleEntry battleEntry : battleEntries) {
 			Rank thisRank = battleEntry.getCard().getRank();
@@ -190,7 +214,7 @@ public class WarGame {
 		}
 		
 		/* Remove all of the entries in matchesAndEntries that doesn't have a list bigger than 1 */
-		Set<Rank> eligibleForRemoval = new HashSet<Rank>();
+		HashSet<Rank> eligibleForRemoval = new HashSet<Rank>();
 		for(Rank rank : matchesAndEntries.keySet()) {
     		if (matchesAndEntries.get(rank).size() <= 1) {
     			eligibleForRemoval.add(rank);
@@ -202,13 +226,4 @@ public class WarGame {
 		
     	return matchesAndEntries;
     }
-    
-    public void removePlayer(Player player) {
-    	players.remove(player);
-    }
-    
-    public ArrayList<Player> getPlayers() {
-    	return this.players;
-    }
-
 }

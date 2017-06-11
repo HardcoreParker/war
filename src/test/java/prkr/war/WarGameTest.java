@@ -1,22 +1,22 @@
 package prkr.war;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import exceptions.DuplicatePlayerException;
-import exceptions.TooManyPlayersException;
 import prkr.war.Card.Rank;
 import prkr.war.Card.Suit;
+import prkr.war.exceptions.DuplicatePlayerException;
+import prkr.war.exceptions.TooManyPlayersException;
 
 public class WarGameTest {
 
@@ -123,7 +123,7 @@ public class WarGameTest {
 	 */
 	@Test
 	public void gatherMatchedEntriesAndRanks_test() {
-		ArrayList<BattleEntry> battleEntries = new ArrayList<BattleEntry>();
+		HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
 		
 		BattleEntry entry1 = new BattleEntry(new Card(Rank.ACE, Suit.SPADES), new Player("Player 1"));
 		BattleEntry entry2 = new BattleEntry(new Card(Rank.ACE, Suit.HEARTS), new Player("Player 2"));
@@ -131,7 +131,7 @@ public class WarGameTest {
 		battleEntries.add(entry1);
 		battleEntries.add(entry2);
 		
-		HashMap<Rank, Set<BattleEntry>> matches = warGame.gatherMatchedRanksAndEntries(battleEntries);
+		HashMap<Rank, HashSet<BattleEntry>> matches = warGame.identifyPairs(battleEntries);
 		
 		assertEquals(1, matches.size());
 		assertTrue(matches.containsKey(Rank.ACE));
@@ -142,7 +142,7 @@ public class WarGameTest {
 	
 	@Test
 	public void gatherMatchedEntriesAndRanks_many_matches_test() {
-		ArrayList<BattleEntry> battlesProposals = new ArrayList<BattleEntry>();
+		HashSet<BattleEntry> battlesProposals = new HashSet<BattleEntry>();
 		
 		BattleEntry entry1 = new BattleEntry(new Card(Rank.TWO, Suit.SPADES), new Player("Player 1"));
 		BattleEntry entry2 = new BattleEntry(new Card(Rank.TWO, Suit.HEARTS), new Player("Player 2"));
@@ -157,7 +157,7 @@ public class WarGameTest {
 		battlesProposals.add(entry3);
 		battlesProposals.add(entry4);
 		
-		HashMap<Rank, Set<BattleEntry>> matches = warGame.gatherMatchedRanksAndEntries(battlesProposals);
+		HashMap<Rank, HashSet<BattleEntry>> matches = warGame.identifyPairs(battlesProposals);
 		
 		assertEquals(2, matches.size());
 		assertTrue(matches.get(Rank.TWO).contains(entry1));
@@ -170,7 +170,7 @@ public class WarGameTest {
 	
 	@Test
 	public void gatherMatchedEntriesAndRanks_no_matches_test() {
-		ArrayList<BattleEntry> battlesProposals = new ArrayList<BattleEntry>();
+		HashSet<BattleEntry> battlesProposals = new HashSet<BattleEntry>();
 		
 		BattleEntry entry1 = new BattleEntry(new Card(Rank.TWO, Suit.SPADES), new Player("Player 1"));
 		BattleEntry entry2 = new BattleEntry(new Card(Rank.THREE, Suit.HEARTS), new Player("Player 2"));
@@ -184,7 +184,7 @@ public class WarGameTest {
 		battlesProposals.add(entry3);
 		battlesProposals.add(entry4);
 		
-		HashMap<Rank, Set<BattleEntry>> matches = warGame.gatherMatchedRanksAndEntries(battlesProposals);
+		HashMap<Rank, HashSet<BattleEntry>> matches = warGame.identifyPairs(battlesProposals);
 		
 		assertEquals(0, matches.size());
 	}
@@ -240,12 +240,12 @@ public class WarGameTest {
 		warGame.getPlayers().get(2).dealCard(new Card(Rank.ACE, Suit.CLUBS));
 		
 		
-		ArrayList<BattleEntry> entries = new ArrayList<BattleEntry>();
+		HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
 		for(Player player : warGame.getPlayers()) {
 			entries.add(new BattleEntry(player.getDeck().removeFirst(), player));
 		}
 		
-		BattleResolution resolution = warGame.compareAllCardsInRound(entries);
+		BattleResolution resolution = warGame.initiateBattle(entries);
 		
 		assertEquals(warGame.getPlayers().get(2), resolution.getWinner());
 		assertEquals(9, resolution.getPot().size());
@@ -281,12 +281,12 @@ public class WarGameTest {
 		warGame.getPlayers().get(3).dealCard(new Card(Rank.TWO, Suit.DIAMONDS));
 		warGame.getPlayers().get(3).dealCard(new Card(Rank.ACE, Suit.DIAMONDS));
 		
-		ArrayList<BattleEntry> entries = new ArrayList<BattleEntry>();
+		HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
 		for(Player player : warGame.getPlayers()) {
 			entries.add(new BattleEntry(player.getDeck().removeFirst(), player));
 		}
 		
-		BattleResolution resolution = warGame.compareAllCardsInRound(entries);
+		BattleResolution resolution = warGame.initiateBattle(entries);
 		
 		assertEquals(warGame.getPlayers().get(0), resolution.getWinner());
 		assertEquals(12, resolution.getPot().size());
