@@ -4,7 +4,6 @@ import java.util.HashSet;
 
 public class BattleResolution {
 	private final Player winner;
-	// TODO - Consider making a LinkedList
 	private final HashSet<Card> pot;
 	private final Card winningCard;
 	

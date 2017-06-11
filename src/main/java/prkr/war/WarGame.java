@@ -68,7 +68,7 @@ public class WarGame {
     	}
     }
     
-    public void beginBattle() {
+    public BattleResolution beginBattle() {
     	HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
     	for(Player player : getPlayers()) {
     		Card card = player.getDeck().removeFirst();
@@ -81,6 +81,8 @@ public class WarGame {
     	
     	ArrayList<Player> ineligiblePlayers = checkForIneligiblePlayers();
     	removePlayers(ineligiblePlayers);
+    	
+    	return resolution;
     }
     
     private ArrayList<Player> checkForIneligiblePlayers() {
@@ -175,7 +177,8 @@ public class WarGame {
 		ArrayList<Player> allPlayers = getPlayers();
     	HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
     	
-    	checkForIneligiblePlayers();
+    	ArrayList<Player> ineligiblePlayers = checkForIneligiblePlayers();
+    	removePlayers(ineligiblePlayers);
 		
     	for(Player player : allPlayers) {
 			Card card = player.getDeck().removeFirst();
