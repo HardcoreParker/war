@@ -3,7 +3,6 @@ package prkr.war;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 
 import prkr.war.Card.Rank;
 import prkr.war.exceptions.DuplicatePlayerException;
@@ -31,12 +30,23 @@ public class WarGame {
     	players.add(new Player(name));
     }
     
+    /**
+     * Returns a list of players still in the game
+     * @return
+     */
     public ArrayList<Player> getPlayers() {
     	return this.players;
     }
     
-    public void removePlayer(Player player) {
-    	players.remove(player);
+    
+    protected void removePlayers(ArrayList<Player> playersToRemove) {
+    	for(Player player : playersToRemove) {
+    		removePlayer(player);
+    	}
+    }
+    
+    protected void removePlayer(Player playerToRemove) {
+    	players.remove(playerToRemove);
     }
     
     /**
@@ -66,9 +76,24 @@ public class WarGame {
     	}
     	
     	BattleResolution resolution = initiateBattle(entries);
+    	
+    	awardWinner(resolution);
+    	
+    	ArrayList<Player> ineligiblePlayers = checkForIneligiblePlayers();
+    	removePlayers(ineligiblePlayers);
     }
     
-    /** 
+    private ArrayList<Player> checkForIneligiblePlayers() {
+    	ArrayList<Player> playersToRemove = new ArrayList<Player>();
+    	for(Player player : getPlayers()) {
+    		if(player.getDeck().size() < 1) {
+    			playersToRemove.add(player);
+    		}
+    	}
+    	return playersToRemove;
+	}
+
+	/** 
      * This method contains the core logic for intaking and resolving a battle of War.
      * It accepts an ArrayList of RoundEntries and proceeds to determine if there are any matches among the cards entered into the battle
      * If there are matches, it first determines if the players involved in the matches are able to produce another card
@@ -82,118 +107,86 @@ public class WarGame {
      * @return RoundResolution
      */
     public BattleResolution initiateBattle(HashSet<BattleEntry> battleEntries) {
+    	HashSet<Card> pot = new HashSet<Card>();
+    	
+    	addCardsToPot(battleEntries, pot);
+    	
     	HashMap<Rank, HashSet<BattleEntry>> mapOfPairs = identifyPairs(battleEntries);
-		HashSet<Card> pot = new HashSet<Card>();
-		Player winner = null;
-		Card highCard = null;
-
-		// TODO - reverse if and else
-    	if(mapOfPairs.size() > 0) { // Decides if there will be a war
-    		// Add cards to pot
-    		for(Rank rank : mapOfPairs.keySet()) { // Set up a particular war for this rank
-    			HashSet<BattleEntry> entriesInAParticularWar = mapOfPairs.get(rank);
-    			
-    			BattleResolution battleResolution = null;
-    			
-    			// TODO - Next - Since we had a bug from initiateSuitResolution and initWar being different
-    			// by adding cards to pot at different/non existant times, it's time to make them 1 method 
-    			if(anyPlayersHaveEmptyDeck(entriesInAParticularWar)) {
-    				// Evaluate winner based on suit strength
-    				battleResolution = initiateSuitResolution(entriesInAParticularWar);
-    			} else {
-    				// Standard war
-    				battleResolution = initWar(entriesInAParticularWar);
-    			}
-    			
-    			// TODO - Pull all of these ordinal comparisons out to a method that takes compareSuit as a bool
-    			// always add the pot
-    			pot.addAll(battleResolution.getPot());
-    			
-    			for(BattleEntry entry : battleEntries) {
-    				pot.add(entry.getCard());
-    			}
-    			
-    			if(highCard == null || battleResolution.getWinningCard().getRank().ordinal() > highCard.getRank().ordinal()) { 
-    				/* Note - Shouldn't have to worry about changing the highCard due to a higher suit strength - this would get resolved in initiateSuitResolution */
-    				highCard = battleResolution.getWinningCard();
-    				winner = battleResolution.getWinner();
-    			}
-    		}
-    	} else {
-    		for(BattleEntry entry : battleEntries) {
-    			Card card = entry.getCard();
-    			Player player = entry.getPlayer();
-    			pot.add(card); // Add this card to the 'pot'
-    			
-    			// Assign new highCard if current card is eligible
-    			if(highCard == null) {
-    				highCard = card;
-    				winner = player;
-    			} else if (card.getRank().ordinal() > highCard.getRank().ordinal()) {
-    				highCard = card;
-    				winner = player;
-    			}
-    		}
+    	HashSet<BattleEntry> entriesForLatestWar = null;
+    	
+    	while(!mapOfPairs.isEmpty() && getPlayers().size() > 1) { // Decides if there will be a war
+    		entriesForLatestWar = initWar();
+        
+    		addCardsToPot(entriesForLatestWar, pot);
+    		
+    		mapOfPairs = identifyPairs(entriesForLatestWar);
     	}
     	
-    	BattleResolution resolution = new BattleResolution(winner, pot, highCard);
-    	    	
-    	return resolution;
-    }
 
+    	Card highCard = null;
+    	Player winner = null;
+    	
+    	HashSet<BattleEntry> entriesEligibleForWinning = null;
+    	if(entriesForLatestWar != null) {
+    		entriesEligibleForWinning = entriesForLatestWar;
+    	} else {
+    		entriesEligibleForWinning = battleEntries;
+    	}
+    	
+		for(BattleEntry entry : entriesEligibleForWinning) {
+			Card card = entry.getCard();
+			Player player = entry.getPlayer();
+			
+			if(highCard == null) {
+				highCard = card;
+				winner = player;
+			} else if (card.getRank().ordinal() > highCard.getRank().ordinal()) {
+				highCard = card;
+				winner = player;
+			}
+		}
+		
+		return new BattleResolution(winner, pot, highCard);
+    	
+    }
+    		
+    private void addCardsToPot(HashSet<BattleEntry> battleEntries, HashSet<Card> pot) {
+    	for(BattleEntry entry : battleEntries) {
+			pot.add(entry.getCard());
+		}
+    }
+    		
 	private void awardWinner(BattleResolution resolution) {
 		Player battleWinner = resolution.getWinner();
     	battleWinner.getDeck().addAll(resolution.getPot());
 	}
-
-	protected BattleResolution initiateSuitResolution(Set<BattleEntry> entriesInAParticularWar) {
-    	Card winningCard = null;
-    	Player winner = null;
-    	HashSet<Card> pot = new HashSet<Card>();
-    	for(BattleEntry entry : entriesInAParticularWar) {
-    		// Always add to pot
-    		pot.add(entry.getCard());
-    		
-    		if(winningCard == null || entry.getCard().getSuit().ordinal() > winningCard.getSuit().ordinal()){
-    			winningCard = entry.getCard();
-    			winner = entry.getPlayer();
-    		}
-    		
-    	}
-    	
-    	return new BattleResolution(winner, pot, winningCard);
-	}
 	
-	protected boolean anyPlayersHaveEmptyDeck(Set<BattleEntry> entriesInAParticularWar) {
-    	for(BattleEntry entry: entriesInAParticularWar) {
-    		if(entry.getPlayer().getDeck().isEmpty()) {
+	protected boolean anyPlayersHaveEmptyDeck() {
+		for(Player player : getPlayers()) {
+			if(player.getDeck().isEmpty()) {
     			return true;
     		}
-    	}
-    	return false;
+		}
+		return false;
 	}
 
-    protected BattleResolution initWar(HashSet<BattleEntry> entriesInAParticularWar) {
-    	HashSet<Card> pot = new HashSet<Card>();
-
-    	// New entries for next battle
+	
+	protected HashSet<BattleEntry> initWar() {
+		ArrayList<Player> allPlayers = getPlayers();
     	HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
-
-    	for(BattleEntry entry : entriesInAParticularWar) {
-    		Player player = entry.getPlayer();
-    		Card card = player.getDeck().removeFirst();
+    	
+    	checkForIneligiblePlayers();
+		
+    	for(Player player : allPlayers) {
+			Card card = player.getDeck().removeFirst();
     		battleEntries.add(new BattleEntry(card, player));
-    	}
-    	
-    	BattleResolution resolution = initiateBattle(battleEntries);
-    	
-    	pot.addAll(resolution.getPot());
-    	
-    	return new BattleResolution(resolution.getWinner(), pot, resolution.getWinningCard());
+		}
+		
+		return battleEntries;
 	}
     
     /**
-	 * Takes in a list of RoundEntry objects and returns a list of ranks that had more than 1 entry
+	 * Takes in a list of BattleEntry and returns a list of ranks that had more than 1 entry
 	 * Matched ranks will be used to calculate wars that need to be started.
 	 * 
 	 * @param battleEntries

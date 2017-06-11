@@ -6,11 +6,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import prkr.war.Card.Rank;
@@ -110,12 +112,47 @@ public class WarGameTest {
 	public void removePlayer_test() {
 		setUpWithNPlayersExceptionSafe(3);
 		
-		assertTrue(warGame.getPlayers().contains(new Player("Player 0")));
+		Player p1 = warGame.getPlayers().get(0);
+		Player p2 = warGame.getPlayers().get(1);
+		Player p3 = warGame.getPlayers().get(2);
 		
-		warGame.removePlayer(new Player("Player 0"));
+		assertTrue(warGame.getPlayers().contains(p1));
+		assertTrue(warGame.getPlayers().contains(p2));
+		assertTrue(warGame.getPlayers().contains(p3));
+		
+		warGame.removePlayer(p1);
 		
 		assert(warGame.getPlayers().size() == 2);
-		assertFalse(warGame.getPlayers().contains(new Player("Player 0")));
+		assertFalse(warGame.getPlayers().contains(p1));
+		assertTrue(warGame.getPlayers().contains(p2));
+		assertTrue(warGame.getPlayers().contains(p3));
+	}
+	
+	/**
+	 * removePlayers()
+	 */
+	@Test
+	public void removePlayers_test() {
+		setUpWithNPlayersExceptionSafe(3);
+
+		Player p1 = warGame.getPlayers().get(0);
+		Player p2 = warGame.getPlayers().get(1);
+		Player p3 = warGame.getPlayers().get(2);
+		
+		assertTrue(warGame.getPlayers().contains(p1));
+		assertTrue(warGame.getPlayers().contains(p2));
+		assertTrue(warGame.getPlayers().contains(p3));
+
+		ArrayList<Player> playersToRemove = new ArrayList<Player>();
+		playersToRemove.add(p1);
+		playersToRemove.add(p2);
+		
+		warGame.removePlayers(playersToRemove);
+		
+		assert(warGame.getPlayers().size() == 1);
+		assertFalse(warGame.getPlayers().contains(p1));
+		assertFalse(warGame.getPlayers().contains(p2));
+		assertTrue(warGame.getPlayers().contains(p3));
 	}
 	
 	/**
@@ -190,31 +227,25 @@ public class WarGameTest {
 	}
 	
 	/**
-	 * initiateSuitResolution() test
+	 * anyPlayersHaveEmptyDeck()
 	 */
 	@Test
-	public void initiateSuitResolution_test() {
-		Set<BattleEntry> entriesInAParticularWar = new HashSet<BattleEntry>();
+	public void anyPlayersHaveEmptyDeck_true_test() {
+		setUpWithNPlayersExceptionSafe(4);
 		
-		Player player1 = new Player("Player 1");
-		Card twoOfSpades = new Card(Rank.TWO, Suit.SPADES);
-		Player player2 = new Player("Player 2");
-		Card twoOfHearts = new Card(Rank.TWO, Suit.HEARTS);
+		boolean anyPlayersHaveEmptyDeck = warGame.anyPlayersHaveEmptyDeck();
+		assertEquals(true, anyPlayersHaveEmptyDeck);
+	}
+	
+	@Test
+	public void anyPlayersHaveEmptyDeck_false_test() {
+		setUpWithNPlayersExceptionSafe(2);
 		
-		BattleEntry entry1 = new BattleEntry(twoOfSpades, player1);
-		BattleEntry entry2 = new BattleEntry(twoOfHearts, player2);
+		warGame.getPlayers().get(0).dealCard(new Card(Rank.ACE, Suit.SPADES));
+		warGame.getPlayers().get(1).dealCard(new Card(Rank.ACE, Suit.HEARTS));
 		
-		
-		entriesInAParticularWar.add(entry1);
-		entriesInAParticularWar.add(entry2);
-		
-		BattleResolution resolution = warGame.initiateSuitResolution(entriesInAParticularWar);
-		
-		assertEquals(player1, resolution.getWinner());
-		assertEquals(twoOfSpades, resolution.getWinningCard());
-		assertEquals(2, resolution.getPot().size());
-		assertTrue(resolution.getPot().contains(twoOfSpades));
-		assertTrue(resolution.getPot().contains(twoOfHearts));
+		boolean anyPlayersHaveEmptyDeck = warGame.anyPlayersHaveEmptyDeck();
+		assertEquals(false, anyPlayersHaveEmptyDeck);
 	}
 	
 	/**
@@ -253,11 +284,11 @@ public class WarGameTest {
 	}
 	
 	/**
-	 * This test will consist of 4 players with 3 cards each.
-	 * The first battle will be a 4-way war
-	 * The second battle will be two 2-way wars
-	 * The third battle will resolve with player 0 emerging as the ultimate winner, despite player 2 winning their war
+	 * This is a special scenario where the entire deck is in the pot and all players are out of cards
+	 * Only realistically viable in test cases, but we should handle it
 	 */
+	// TODO - Implement
+	@Ignore
 	@Test
 	public void war_4_players_two_wars_test() {
 		setUpWithNPlayersExceptionSafe(4);
@@ -307,7 +338,7 @@ public class WarGameTest {
 	private void setUpWithNPlayersExceptionSafe(int players) {
 		for (int i = 0; i < players; i++) {
 			try {
-				warGame.addPlayer("Player "+String.valueOf(i));
+				warGame.addPlayer("Player "+String.valueOf(i+1));
 			} catch (DuplicatePlayerException e) {
 				fail();
 			} catch (TooManyPlayersException e) {
