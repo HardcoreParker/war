@@ -21,7 +21,7 @@ public class WarGame {
 	}
 	
 	/**
-	 * Adds a player to the game. Does not accept more than 52 players 
+	 * Adds a player to the game. Does not accept more than 6 players 
 	 * and will not accept two players with the same name as defined by String equality
 	 * 
 	 * @param name

@@ -88,8 +88,8 @@ public class WarGameTest {
 	
 	@Test
 	public void distributeCards_no_player_has_unequal_cards_test() {
-		// Ensure no player has the extra card and that it remains in the intiial deck
-		setUpWithNPlayersExceptionSafe(51);
+		// Ensure no player has extra cards
+		setUpWithNPlayersExceptionSafe(6);
 		
 		warGame.distributeCards(deck);
 
@@ -97,21 +97,21 @@ public class WarGameTest {
 		for(Player player : warGame.getPlayers()) {
 			int playerDeckSize = player.getDeck().size();
 			assertEquals(playerDeckSize, globalDeckSize);
-			assertEquals(1, playerDeckSize);
+			assertEquals(8, playerDeckSize);
 		}
 		
-		assertEquals(1, deck.getCards().size());
+		assertEquals(4, deck.getCards().size());
 	}
 
 	@Test
-	public void distributeCards_52_players_test() {
-		setUpWithNPlayersExceptionSafe(52);
+	public void distributeCards_6_players_test() {
+		setUpWithNPlayersExceptionSafe(6);
 		
 		warGame.distributeCards(deck);
 		
 		ArrayList<Player> players = warGame.getPlayers();
 		
-		assert(players.get(0).getDeck().size() == 1);
+		assert(players.get(0).getDeck().size() == 8);
 	}
 	
 	/**
