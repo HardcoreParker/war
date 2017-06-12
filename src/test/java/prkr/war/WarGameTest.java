@@ -129,33 +129,6 @@ public class WarGameTest {
 	}
 	
 	/**
-	 * removePlayers()
-	 */
-	@Test
-	public void removePlayers_test() {
-		setUpWithNPlayersExceptionSafe(3);
-
-		Player p1 = warGame.getPlayers().get(0);
-		Player p2 = warGame.getPlayers().get(1);
-		Player p3 = warGame.getPlayers().get(2);
-		
-		assertTrue(warGame.getPlayers().contains(p1));
-		assertTrue(warGame.getPlayers().contains(p2));
-		assertTrue(warGame.getPlayers().contains(p3));
-
-		ArrayList<Player> playersToRemove = new ArrayList<Player>();
-		playersToRemove.add(p1);
-		playersToRemove.add(p2);
-		
-		warGame.removePlayers(playersToRemove);
-		
-		assert(warGame.getPlayers().size() == 1);
-		assertFalse(warGame.getPlayers().contains(p1));
-		assertFalse(warGame.getPlayers().contains(p2));
-		assertTrue(warGame.getPlayers().contains(p3));
-	}
-	
-	/**
 	 * gatherMatchedEntriesAndRanks()
 	 */
 	@Test
@@ -279,7 +252,7 @@ public class WarGameTest {
 		BattleResolution resolution = warGame.initiateBattle(entries);
 		
 		assertEquals(warGame.getPlayers().get(2), resolution.getWinner());
-		assertEquals(9, resolution.getPot().size());
+		assertEquals(9, warGame.getPot().size());
 		assertEquals(winningCard, resolution.getWinningCard());
 	}
 	
@@ -320,7 +293,7 @@ public class WarGameTest {
 		BattleResolution resolution = warGame.initiateBattle(entries);
 		
 		assertEquals(warGame.getPlayers().get(0), resolution.getWinner());
-		assertEquals(12, resolution.getPot().size());
+		assertEquals(12, warGame.getPot().size());
 		assertEquals(winningCard, resolution.getWinningCard());
 	}
 

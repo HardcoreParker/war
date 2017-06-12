@@ -40,21 +40,16 @@ public class App {
     	boolean gameShouldContinue = true;
     	System.out.println("Here we GO!");
     	while(gameShouldContinue) {
-    		System.out.println("Type n to continue to the next round.");
 			String input = System.console().readLine();
-			if(input.equals("next") || input.equals("n")) {
-				BattleResolution resolution = warGame.beginBattle();
-				System.out.println("The battle was resolved with "+resolution.getWinner()+" as the winner and a pot of "+resolution.getPot().size()+". The high card was a "+resolution.getWinningCard());
-				for(Player player : warGame.getPlayers()) {
-					System.out.println("PLAYER: "+player+"'s deck has "+player.getDeck().size()+" remaining.");
-				}
-				if(warGame.getPlayers().size() <= 1) {
-					System.out.println("The game has finished! Winner is "+warGame.getPlayers());
-					gameShouldContinue = false;
-				}
-			} else {
-				System.out.println("Please just say 'n' for now");
-				break;
+			
+			BattleResolution resolution = warGame.beginBattle();
+			System.out.println("The battle was resolved with "+resolution.getWinner()+" as the winner and a pot of "+resolution.getPot().size()+". The high card was a "+resolution.getWinningCard());
+			for(Player player : warGame.getPlayers()) {
+				System.out.println(player+"'s deck has "+player.getDeck().size()+" remaining.");
+			}
+			if(warGame.getPlayers().size() <= 1) {
+				System.out.println("The game has finished! Winner is "+warGame.getPlayers());
+				gameShouldContinue = false;
 			}
     	}
     }
