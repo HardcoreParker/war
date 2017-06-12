@@ -2,6 +2,7 @@ package prkr.war;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,6 +25,9 @@ public class WarGameTest {
 
 	WarGame warGame;
 	Deck deck;
+	Card aceOfSpades = new Card(Rank.ACE, Suit.SPADES);
+	Card twoOfHearts = new Card(Rank.TWO, Suit.HEARTS);
+
 	
 	@Before
 	public void setUpBefore() {
@@ -64,6 +68,9 @@ public class WarGameTest {
 		setUpWithNPlayers(53);
 	}
 	
+	/**
+	 * distrubuteCards()
+	 */
 	@Test
 	public void disributeCards_test() {
 		setUpWithNPlayersExceptionSafe(3);
@@ -106,27 +113,92 @@ public class WarGameTest {
 	}
 	
 	/**
-	 * removePlayer()
+	 * getPlayers()
 	 */
 	@Test
-	public void removePlayer_test() {
-		setUpWithNPlayersExceptionSafe(3);
+	public void getPlayers_Test() {
+		setUpWithNPlayersExceptionSafe(1);
 		
-		Player p1 = warGame.getPlayers().get(0);
-		Player p2 = warGame.getPlayers().get(1);
-		Player p3 = warGame.getPlayers().get(2);
+		ArrayList<Player> players = warGame.getPlayers();
 		
-		assertTrue(warGame.getPlayers().contains(p1));
-		assertTrue(warGame.getPlayers().contains(p2));
-		assertTrue(warGame.getPlayers().contains(p3));
-		
-		warGame.removePlayer(p1);
-		
-		assert(warGame.getPlayers().size() == 2);
-		assertFalse(warGame.getPlayers().contains(p1));
-		assertTrue(warGame.getPlayers().contains(p2));
-		assertTrue(warGame.getPlayers().contains(p3));
+		assertNotNull(players);
+		assertFalse(players.isEmpty());
 	}
+	
+	@Test
+	public void getPlayers_no_players_test() {
+		ArrayList<Player> players = warGame.getPlayers();
+		
+		assertNotNull(players);
+		assertTrue(players.isEmpty());
+	}
+	
+	/**
+	 * getPot()
+	 * addToPot()
+	 */
+	@Test
+	public void getPot_addToPot_test(){
+		Card card = new Card(Rank.ACE, Suit.SPADES);
+		warGame.addToPot(card);
+		
+		HashSet<Card> pot = warGame.getPot();
+		assertNotNull(pot);
+		assertFalse(pot.isEmpty());
+		assertTrue(pot.contains(card));
+		assertEquals(1, pot.size());
+	}
+	
+	@Test
+	public void getPot_starts_empty_test() {
+		HashSet<Card> pot = warGame.getPot();
+		assertNotNull(pot);
+		assertTrue(pot.isEmpty());
+	}
+	
+	/**
+	 * addCardsToPot()
+	 */
+	@Test
+	public void addCardsToPot_test() {
+		HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
+		battleEntries.add(new BattleEntry(aceOfSpades, new Player("P1")));
+		battleEntries.add(new BattleEntry(twoOfHearts, new Player("P2")));
+		
+		warGame.addCardsToPot(battleEntries);
+		
+		HashSet<Card> pot = warGame.getPot();
+		
+		assertEquals(2, pot.size());
+		assert(pot.contains(aceOfSpades));
+		assert(pot.contains(twoOfHearts));
+	}
+	
+	/**
+	 * removeIneligiblePlayers()
+	 */
+	@Test
+	public void removeIneligiblePlayers_test() {
+		setUpWithNPlayersExceptionSafe(2);
+		
+		Player P1 = warGame.getPlayers().get(0);
+		Player P2 = warGame.getPlayers().get(1);
+		
+		P1.dealCard(aceOfSpades);
+		P1.dealCard(twoOfHearts);
+		
+		assertEquals(2, P1.getDeck().size());
+		assertEquals(0, P2.getDeck().size());
+		assertEquals(2, warGame.getPlayers().size());
+		assertTrue(warGame.getPlayers().contains(P1));
+		assertTrue(warGame.getPlayers().contains(P2));
+		
+		warGame.removeIneligiblePlayers();
+		
+		assertTrue(warGame.getPlayers().contains(P1));
+		assertFalse(warGame.getPlayers().contains(P2));
+	}
+	
 	
 	/**
 	 * gatherMatchedEntriesAndRanks()

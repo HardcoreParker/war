@@ -9,6 +9,7 @@ import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.TooManyPlayersException;
 
 public class WarGame {
+	
 	private ArrayList<Player> players = new ArrayList<Player>();
 	private HashSet<Card> pot = new HashSet<Card>();
 	/**
@@ -31,6 +32,28 @@ public class WarGame {
     }
     
     /**
+	 * For every player involved in the game, distributes cards equally to their respective decks.
+	 * Cards are removed from the supplied deck as they are distribued. Any cards remaining
+	 * after equal distribution are added to the pot
+	 * 
+	 * @param deck
+	 */
+	public void distributeCards(Deck deck) {
+		int cardsPerPlayer = deck.getCards().size() / getPlayers().size();
+		
+		for(int i = 1; i <= cardsPerPlayer; i++) {
+			for (Player player : getPlayers()) {
+	    		player.getDeck().addFirst(deck.getCards().pop());
+	    	}
+		}
+		
+		// handle remaining cards
+		for(Card card : deck.getCards()) {
+			addToPot(card);
+		}
+	}
+
+	/**
      * Returns a list of players still in the game
      * @return
      */
@@ -38,16 +61,37 @@ public class WarGame {
     	return this.players;
     }
     
+    /**
+     * Getter for WarGame.Pot
+     * @return
+     */
     public HashSet<Card> getPot() {
     	return this.pot;
     }
-    
-    public void addToPot(Card card) {
-    	getPot().add(card);
-    }
-    
-    
-    protected void removeIneligiblePlayers() {
+
+	protected void refreshPot() {
+		pot = new HashSet<Card>();
+	}
+
+	/**
+	 * Convenience method for adding the cards from a set of BattleEntries to the pot
+	 * @param battleEntries
+	 */
+	protected void addCardsToPot(HashSet<BattleEntry> battleEntries) {
+		for(BattleEntry entry : battleEntries) {
+			addToPot(entry.getCard());
+		}
+	}
+	
+    /**
+	 * Convenience method for adding cards to the pot
+	 * @param card
+	 */
+	protected void addToPot(Card card) {
+		getPot().add(card);
+	}
+
+	protected void removeIneligiblePlayers() {
     	ArrayList<Player> playersToRemove = new ArrayList<Player>();
     	for(Player player : getPlayers()) {
     		if(player.getDeck().size() < 1) {
@@ -56,54 +100,11 @@ public class WarGame {
     	}
     	
     	for(Player player : playersToRemove) {
-    		removePlayer(player);
+        	players.remove(player);
+        	// TODO = extract to gamelogger
+        	System.out.println(player + " has been eliminated.");
     	}
     }
-    
-    protected void removePlayer(Player playerToRemove) {
-    	players.remove(playerToRemove);
-    	System.out.println(playerToRemove + " has been eliminated.");
-    }
-    
-    /**
-     * For every player involved in the game, distributes cards equally to their respective decks.
-     * Cards are removed from the supplied deck as they are distribued. Any cards remaining
-     * after equal distribution are not removed from the supplied deck and need to be handled separately.
-     * 
-     * @param deck
-     */
-    public void distributeCards(Deck deck) {
-    	int cardsPerPlayer = deck.getCards().size() / getPlayers().size();
-    	
-    	for(int i = 1; i <= cardsPerPlayer; i++) {
-    		for (Player player : getPlayers()) {
-        		player.getDeck().addFirst(deck.getCards().pop());
-        	}
-    	}
-    	
-    	// handle remaining cards
-    	for(Card card : deck.getCards()) {
-    		getPot().add(card);
-    	}
-    }
-    
-    public BattleResolution beginBattle() {
-    	HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
-    	
-    	for(Player player : getPlayers()) {
-    		Card card = player.getDeck().removeFirst();
-    		entries.add(new BattleEntry(card, player));
-    	}
-    	
-    	BattleResolution resolution = initiateBattle(entries);
-    	
-    	awardWinner(resolution);
-    	
-    	removeIneligiblePlayers();
-    	
-    	return resolution;
-    }
-
 
 	/** 
      * This method contains the core logic for intaking and resolving a battle of War.
@@ -143,7 +144,9 @@ public class WarGame {
     		entriesEligibleForWinning = battleEntries;
     	}
     	
+    	System.out.println("BATTLE:");
 		for(BattleEntry entry : entriesEligibleForWinning) {
+			System.out.println(entry.getPlayer().toString()+" played "+entry.getCard().toString());
 			Card card = entry.getCard();
 			Player player = entry.getPlayer();
 			
@@ -160,22 +163,13 @@ public class WarGame {
     	
     }
     		
-    private void addCardsToPot(HashSet<BattleEntry> battleEntries) {
-    	for(BattleEntry entry : battleEntries) {
-			getPot().add(entry.getCard());
-		}
-    }
-    		
-	private void awardWinner(BattleResolution resolution) {
+    protected void awardWinner(BattleResolution resolution) {
 		Player battleWinner = resolution.getWinner();
-    	battleWinner.getDeck().addAll(getPot());
-    	refreshPot();
+		for(Card card : getPot()) {
+			battleWinner.getDeck().addLast(card);
+		}
 	}
 	
-	private void refreshPot() {
-		pot = new HashSet<Card>();
-	}
-
 	protected boolean anyPlayersHaveEmptyDeck() {
 		for(Player player : getPlayers()) {
 			if(player.getDeck().isEmpty()) {
@@ -190,9 +184,9 @@ public class WarGame {
 		ArrayList<Player> allPlayers = getPlayers();
     	HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
     	
+    	removeIneligiblePlayers();
     	burnACard();
     	
-    	removeIneligiblePlayers();
     	for(Player player : allPlayers) {
 			Card card = player.getDeck().removeFirst();
     		battleEntries.add(new BattleEntry(card, player));
@@ -202,11 +196,11 @@ public class WarGame {
 	}
     
 	protected void burnACard() {
-    	removeIneligiblePlayers();
 		for(Player player : getPlayers()) {
 			Card card = player.getDeck().removeFirst();
 			getPot().add(card);
 		}
+		removeIneligiblePlayers();
 	}
 	
     /**
@@ -243,4 +237,15 @@ public class WarGame {
 		
     	return matchesAndEntries;
     }
+
+	protected HashSet<BattleEntry> gatherEntries() {
+    	HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
+
+    	for(Player player : getPlayers()) {
+    		Card card = player.getDeck().removeFirst();
+    		entries.add(new BattleEntry(card, player));
+    	}
+    	
+    	return entries;
+	}
 }
