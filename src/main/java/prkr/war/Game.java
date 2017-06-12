@@ -3,6 +3,9 @@ package prkr.war;
 import java.util.HashSet;
 import java.util.Scanner;
 
+import framework.BattleEntry;
+import framework.BattleResolution;
+import framework.Deck;
 import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;

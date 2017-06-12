@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import prkr.war.BattleEntry;
-import prkr.war.BattleResolution;
-import prkr.war.Card;
-import prkr.war.Player;
-import prkr.war.Card.Rank;
+import framework.BattleEntry;
+import framework.BattleResolution;
+import framework.Card;
+import framework.Player;
+import framework.Card.Rank;
 
 public class PrintingUtil {
 

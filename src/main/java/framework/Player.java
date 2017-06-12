@@ -1,4 +1,4 @@
-package prkr.war;
+package framework;
 
 import java.util.LinkedList;
 
@@ -7,7 +7,7 @@ public class Player {
 	private LinkedList<Card> playerDeck = new LinkedList<Card>();
 	private final String name;
 	
-	Player(String name) {
+	public Player(String name) {
 		this.name = name;
 	}
 	

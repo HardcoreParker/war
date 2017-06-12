@@ -1,4 +1,4 @@
-package prkr.war;
+package framework;
 
 import java.util.HashSet;
 
@@ -7,7 +7,7 @@ public class BattleResolution {
 	private final HashSet<Card> pot;
 	private final Card winningCard;
 	
-	BattleResolution(Player winner, HashSet<Card> pot, Card winningCard) {
+	public BattleResolution(Player winner, HashSet<Card> pot, Card winningCard) {
 		this.winner = winner;
 		this.pot = pot;
 		this.winningCard = winningCard;

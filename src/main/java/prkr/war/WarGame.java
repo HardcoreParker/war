@@ -4,7 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import prkr.war.Card.Rank;
+import framework.BattleEntry;
+import framework.BattleResolution;
+import framework.Card;
+import framework.Deck;
+import framework.Player;
+import framework.Card.Rank;
 import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;

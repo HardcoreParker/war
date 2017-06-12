@@ -1,4 +1,4 @@
-package prkr.war;
+package framework;
 
 import static org.junit.Assert.*;
 
@@ -7,8 +7,10 @@ import java.util.LinkedList;
 import org.junit.Before;
 import org.junit.Test;
 
-import prkr.war.Card.Rank;
-import prkr.war.Card.Suit;
+import framework.Card;
+import framework.Player;
+import framework.Card.Rank;
+import framework.Card.Suit;
 
 public class PlayerTest {
 	Player player1 = new Player("Player1");

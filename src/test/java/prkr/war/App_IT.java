@@ -20,8 +20,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import prkr.war.Card.Rank;
-import prkr.war.Card.Suit;
+import framework.BattleEntry;
+import framework.BattleResolution;
+import framework.Card;
+import framework.Deck;
+import framework.Player;
+import framework.Card.Rank;
+import framework.Card.Suit;
 import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
