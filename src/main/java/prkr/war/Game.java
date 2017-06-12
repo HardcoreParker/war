@@ -9,7 +9,7 @@ import prkr.war.exceptions.TooManyPlayersException;
 import prkr.war.framework.BattleEntry;
 import prkr.war.framework.BattleResolution;
 import prkr.war.framework.Deck;
-import util.PrintingUtil;
+import prkr.war.util.PrintingUtil;
 
 public class Game {
 

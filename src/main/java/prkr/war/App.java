@@ -2,7 +2,7 @@ package prkr.war;
 
 import java.util.Scanner;
 
-import util.PrintingUtil;
+import prkr.war.util.PrintingUtil;
 
 public class App {
 	

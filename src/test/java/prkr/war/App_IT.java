@@ -30,7 +30,7 @@ import prkr.war.framework.Deck;
 import prkr.war.framework.Player;
 import prkr.war.framework.Card.Rank;
 import prkr.war.framework.Card.Suit;
-import util.PrintingUtil;
+import prkr.war.util.PrintingUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class App_IT {
