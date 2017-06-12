@@ -32,7 +32,7 @@ public class WarGame {
     	if(players.contains(new Player(name))) {
     		throw new DuplicatePlayerException();
     	}
-    	if(players.size() >= 52) {
+    	if(players.size() >= 6) {
     		throw new TooManyPlayersException();
     	}
     	
