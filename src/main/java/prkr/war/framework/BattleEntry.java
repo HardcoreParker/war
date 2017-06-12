@@ -1,4 +1,4 @@
-package framework;
+package prkr.war.framework;
 
 public class BattleEntry {
 	private final Card card;

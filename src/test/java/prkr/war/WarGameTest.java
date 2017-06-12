@@ -16,16 +16,16 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import framework.BattleEntry;
-import framework.BattleResolution;
-import framework.Card;
-import framework.Deck;
-import framework.Player;
-import framework.Card.Rank;
-import framework.Card.Suit;
 import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
+import prkr.war.framework.BattleEntry;
+import prkr.war.framework.BattleResolution;
+import prkr.war.framework.Card;
+import prkr.war.framework.Deck;
+import prkr.war.framework.Player;
+import prkr.war.framework.Card.Rank;
+import prkr.war.framework.Card.Suit;
 import util.PrintingUtil;
 
 public class WarGameTest {

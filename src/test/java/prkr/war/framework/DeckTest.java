@@ -1,4 +1,4 @@
-package framework;
+package prkr.war.framework;
 
 import static org.junit.Assert.*;
 
@@ -7,10 +7,10 @@ import java.util.LinkedList;
 import org.junit.Before;
 import org.junit.Test;
 
-import framework.Card;
-import framework.Deck;
-import framework.Card.Rank;
-import framework.Card.Suit;
+import prkr.war.framework.Card;
+import prkr.war.framework.Deck;
+import prkr.war.framework.Card.Rank;
+import prkr.war.framework.Card.Suit;
 
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 

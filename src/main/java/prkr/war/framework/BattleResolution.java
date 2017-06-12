@@ -1,4 +1,4 @@
-package framework;
+package prkr.war.framework;
 
 import java.util.HashSet;
 

@@ -20,16 +20,16 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import framework.BattleEntry;
-import framework.BattleResolution;
-import framework.Card;
-import framework.Deck;
-import framework.Player;
-import framework.Card.Rank;
-import framework.Card.Suit;
 import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
+import prkr.war.framework.BattleEntry;
+import prkr.war.framework.BattleResolution;
+import prkr.war.framework.Card;
+import prkr.war.framework.Deck;
+import prkr.war.framework.Player;
+import prkr.war.framework.Card.Rank;
+import prkr.war.framework.Card.Suit;
 import util.PrintingUtil;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -43,8 +43,8 @@ public class App_IT {
 	@Before
 	public void setUpBefore() {
 		String input = "Player1"+"\n"+"Player2"+"\n"+"done\n"+"1\n"+"1\n";
-	    InputStream in = new ByteArrayInputStream(input.getBytes());
-	    System.setIn(in);
+		InputStream in = new ByteArrayInputStream(input.getBytes());
+		System.setIn(in);
 		Scanner scanner = new Scanner(System.in);
 		
 		game = new Game(warGame, scanner, new PrintingUtil());
@@ -63,11 +63,11 @@ public class App_IT {
 		
 		BattleResolution mockResolution = mock(BattleResolution.class);
 		when(warGame.initiateBattle(battleEntries)).thenReturn(mockResolution);
-
+		
 		when(mockResolution.getWinner()).thenReturn(new Player("Player 1"));
 		when(mockResolution.getPot()).thenReturn(new HashSet<Card>());
 		when(mockResolution.getWinningCard()).thenReturn(new Card(Rank.ACE, Suit.SPADES));
-
+		
 		game.startGame();
 		
 		try {
