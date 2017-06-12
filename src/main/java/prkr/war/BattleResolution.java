@@ -1,13 +1,13 @@
 package prkr.war;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 public class BattleResolution {
 	private final Player winner;
-	private final ArrayList<Card> pot;
+	private final HashSet<Card> pot;
 	private final Card winningCard;
 	
-	BattleResolution(Player winner, ArrayList<Card> pot, Card winningCard) {
+	BattleResolution(Player winner, HashSet<Card> pot, Card winningCard) {
 		this.winner = winner;
 		this.pot = pot;
 		this.winningCard = winningCard;
@@ -17,7 +17,7 @@ public class BattleResolution {
 		return winner;
 	}
 
-	public ArrayList<Card> getPot() {
+	public HashSet<Card> getPot() {
 		return pot;
 	}
 
