@@ -4,38 +4,37 @@ import java.util.HashSet;
 import java.util.Scanner;
 
 import prkr.war.exceptions.DuplicatePlayerException;
+import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
+import util.PrintingUtil;
 
 public class Game {
 
 	private WarGame warGame;
 	private Scanner scanner;
+	private static PrintingUtil printingUtil;
 	
-	public Game(WarGame warGame, Scanner scanner) {
+	public Game(WarGame warGame, Scanner scanner, PrintingUtil printingUtil) {
 		this.warGame = warGame;
 		this.scanner = scanner;
+		this.printingUtil = printingUtil;
 	}
 	
 	public void startGame() {
-    	System.out.println("Welcome to War!");
-    	System.out.println("Please enter a name for each player involved in this game (up to 52) followed by <Enter>.");
-    	System.out.println("Indicate that you are ready by submitting 'next'");
+    	printingUtil.announceBeginningOfGame();
     	
     	boolean doneMakingPlayers = false;
-    	
     	while(!doneMakingPlayers) {
 			String input = scanner.nextLine();
-			if(input.equals("next")) {
+			if(input.equals("done")) {
 				doneMakingPlayers = true;
 			} else if(input instanceof String){
 				try {
 					warGame.addPlayer(input);
-					System.out.println("Added player "+input);
-					System.out.println("You can add another player, or start the game with 'next'");
 				} catch (DuplicatePlayerException e) {
-					System.out.println("We already have a player with that name, can you think of another one?");
+					printingUtil.announceDuplicatePlayer();
 				} catch (TooManyPlayersException e) {
-					System.out.println("We already have 52 players. Starting the game.");
+					printingUtil.announceTooManyPlayers();
 					doneMakingPlayers = true;
 					break;
 				}
@@ -48,19 +47,18 @@ public class Game {
     	deck.shuffle();
     	warGame.distributeCards(deck);
     	
+    	printingUtil.announceStart();
+    	
     	boolean gameShouldContinue = true;
-    	System.out.println("Here we GO!");
     	while(gameShouldContinue) {
     		scanner.nextLine();
 			
-			BattleResolution resolution = beginBattle(warGame);
+			beginBattle(warGame);
 			
-			System.out.println("The battle was resolved with "+resolution.getWinner()+" as the winner and a pot of "+resolution.getPot().size()+". The high card was a "+resolution.getWinningCard());
-			for(Player player : warGame.getPlayers()) {
-				System.out.println(player+"'s deck has "+player.getDeck().size()+" remaining.");
-			}
+			printingUtil.announcePlayerDeckSizes(warGame.getPlayers());
+			
 			if(warGame.getPlayers().size() <= 1) {
-				System.out.println("The game has finished! Winner is "+warGame.getPlayers());
+				printingUtil.announceGameOver(warGame.getPlayers());
 				gameShouldContinue = false;
 			}
     	}
@@ -72,7 +70,13 @@ public class Game {
 	    	BattleResolution resolution = warGame.initiateBattle(entries);
 	    	warGame.awardWinner(resolution);
 	    	warGame.refreshPot();
-	    	warGame.removeIneligiblePlayers();
+	    	
+	    	try {
+				warGame.removeIneligiblePlayers();
+			} catch (GameOverException e) {
+				printingUtil.announceAllPlayersAreEliminated();
+				
+			}
 	    	
 	    	return resolution;
 	    }

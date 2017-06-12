@@ -19,7 +19,9 @@ import org.junit.Test;
 import prkr.war.Card.Rank;
 import prkr.war.Card.Suit;
 import prkr.war.exceptions.DuplicatePlayerException;
+import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
+import util.PrintingUtil;
 
 public class WarGameTest {
 
@@ -31,7 +33,7 @@ public class WarGameTest {
 	
 	@Before
 	public void setUpBefore() {
-		warGame = new WarGame();
+		warGame = new WarGame(new PrintingUtil());
 		
 		deck = new Deck();
 		deck.shuffle();
@@ -157,6 +159,19 @@ public class WarGameTest {
 	}
 	
 	/**
+	 * refreshPot()
+	 */
+	@Test
+	public void refreshPot_test() {
+		assertTrue(warGame.getPot().isEmpty());
+		warGame.addToPot(aceOfSpades);
+		warGame.addToPot(twoOfHearts);
+		assertFalse(warGame.getPot().isEmpty());
+		warGame.refreshPot();
+		assertTrue(warGame.getPot().isEmpty());
+	}
+	
+	/**
 	 * addCardsToPot()
 	 */
 	@Test
@@ -172,6 +187,28 @@ public class WarGameTest {
 		assertEquals(2, pot.size());
 		assert(pot.contains(aceOfSpades));
 		assert(pot.contains(twoOfHearts));
+	}
+	
+	/**
+	 * awardWinner()
+	 */
+	@Test
+	public void awardWinner_test() {
+		setUpWithNPlayersExceptionSafe(2);
+		Player P1 = warGame.getPlayers().get(0);
+		Player P2 = warGame.getPlayers().get(1);
+		
+		warGame.addToPot(aceOfSpades);
+		warGame.addToPot(twoOfHearts);
+		
+		BattleResolution resolution = new BattleResolution(P1, warGame.getPot(), aceOfSpades);
+		
+		warGame.awardWinner(resolution);
+		
+		assertEquals(2, P1.getDeck().size());
+		assertTrue(P1.getDeck().contains(aceOfSpades));
+		assertTrue(P1.getDeck().contains(twoOfHearts));
+		assertEquals(0, P2.getDeck().size());
 	}
 	
 	/**
@@ -193,7 +230,11 @@ public class WarGameTest {
 		assertTrue(warGame.getPlayers().contains(P1));
 		assertTrue(warGame.getPlayers().contains(P2));
 		
-		warGame.removeIneligiblePlayers();
+		try {
+			warGame.removeIneligiblePlayers();
+		} catch (GameOverException e) {
+			fail();
+		}
 		
 		assertTrue(warGame.getPlayers().contains(P1));
 		assertFalse(warGame.getPlayers().contains(P2));
@@ -250,6 +291,7 @@ public class WarGameTest {
 
 	}
 	
+	// TODO - rename to identifyPairs
 	@Test
 	public void gatherMatchedEntriesAndRanks_no_matches_test() {
 		HashSet<BattleEntry> battlesProposals = new HashSet<BattleEntry>();
@@ -272,32 +314,10 @@ public class WarGameTest {
 	}
 	
 	/**
-	 * anyPlayersHaveEmptyDeck()
+	 * initiateBattle() test
 	 */
 	@Test
-	public void anyPlayersHaveEmptyDeck_true_test() {
-		setUpWithNPlayersExceptionSafe(4);
-		
-		boolean anyPlayersHaveEmptyDeck = warGame.anyPlayersHaveEmptyDeck();
-		assertEquals(true, anyPlayersHaveEmptyDeck);
-	}
-	
-	@Test
-	public void anyPlayersHaveEmptyDeck_false_test() {
-		setUpWithNPlayersExceptionSafe(2);
-		
-		warGame.getPlayers().get(0).dealCard(new Card(Rank.ACE, Suit.SPADES));
-		warGame.getPlayers().get(1).dealCard(new Card(Rank.ACE, Suit.HEARTS));
-		
-		boolean anyPlayersHaveEmptyDeck = warGame.anyPlayersHaveEmptyDeck();
-		assertEquals(false, anyPlayersHaveEmptyDeck);
-	}
-	
-	/**
-	 * compareAllCardsInRound() test
-	 */
-	@Test
-	public void compareAllCardsInRound_3_players_test() {
+	public void initiateBattle_3_players_test() {
 		setUpWithNPlayersExceptionSafe(3);
 		
 		Card winningCard = new Card(Rank.SEVEN, Suit.CLUBS);
@@ -305,7 +325,6 @@ public class WarGameTest {
 		warGame.getPlayers().get(0).dealCard(new Card(Rank.TWO, Suit.SPADES));
 		warGame.getPlayers().get(0).dealCard(new Card(Rank.SIX, Suit.SPADES));
 		warGame.getPlayers().get(0).dealCard(new Card(Rank.ACE, Suit.SPADES));
-
 		
 		warGame.getPlayers().get(1).dealCard(new Card(Rank.THREE, Suit.HEARTS));
 		warGame.getPlayers().get(1).dealCard(new Card(Rank.SIX, Suit.HEARTS));
@@ -329,46 +348,54 @@ public class WarGameTest {
 	}
 	
 	/**
-	 * This is a special scenario where the entire deck is in the pot and all players are out of cards
-	 * Only realistically viable in test cases, but we should handle it
+	 * compareAllCardsInRound() test
 	 */
-	// TODO - Implement
-	@Ignore
 	@Test
-	public void war_4_players_two_wars_test() {
-		setUpWithNPlayersExceptionSafe(4);
+	public void initiateBattle_3_players_no_wars_test() {
+		setUpWithNPlayersExceptionSafe(3);
 		
-		Card winningCard = new Card(Rank.KING, Suit.SPADES);
+		Player P1 = warGame.getPlayers().get(0);
+		P1.dealCard(new Card(Rank.TWO, Suit.SPADES));
+		P1.dealCard(new Card(Rank.SIX, Suit.SPADES));
+		P1.dealCard(new Card(Rank.KING, Suit.SPADES));
 		
-		warGame.getPlayers().get(0).dealCard(new Card(Rank.KING, Suit.SPADES)); // Winning card
-		warGame.getPlayers().get(0).dealCard(new Card(Rank.THREE, Suit.SPADES));
-		warGame.getPlayers().get(0).dealCard(new Card(Rank.ACE, Suit.SPADES));
+		Player P2 = warGame.getPlayers().get(1);
+		P2.dealCard(new Card(Rank.THREE, Suit.HEARTS));
+		P2.dealCard(new Card(Rank.FIVE, Suit.HEARTS));
+		P2.dealCard(new Card(Rank.QUEEN, Suit.HEARTS));
 
-		warGame.getPlayers().get(1).dealCard(new Card(Rank.FOUR, Suit.HEARTS));
-		warGame.getPlayers().get(1).dealCard(new Card(Rank.THREE, Suit.HEARTS));
-		warGame.getPlayers().get(1).dealCard(new Card(Rank.ACE, Suit.HEARTS));
+		Player P3 = warGame.getPlayers().get(2);
+		P3.dealCard(new Card(Rank.SEVEN, Suit.CLUBS));
+		P3.dealCard(new Card(Rank.SEVEN, Suit.CLUBS));
+		P3.dealCard(new Card(Rank.JACK, Suit.CLUBS));
+		
 
-		
-		warGame.getPlayers().get(2).dealCard(new Card(Rank.FIVE, Suit.CLUBS));
-		warGame.getPlayers().get(2).dealCard(new Card(Rank.TWO, Suit.CLUBS));
-		warGame.getPlayers().get(2).dealCard(new Card(Rank.ACE, Suit.CLUBS));
-		
-		warGame.getPlayers().get(3).dealCard(new Card(Rank.FOUR, Suit.DIAMONDS));
-		warGame.getPlayers().get(3).dealCard(new Card(Rank.TWO, Suit.DIAMONDS));
-		warGame.getPlayers().get(3).dealCard(new Card(Rank.ACE, Suit.DIAMONDS));
-		
-		HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
-		for(Player player : warGame.getPlayers()) {
-			entries.add(new BattleEntry(player.getDeck().removeFirst(), player));
-		}
-		
+		HashSet<BattleEntry> entries = warGame.gatherEntries();
 		BattleResolution resolution = warGame.initiateBattle(entries);
-		
-		assertEquals(warGame.getPlayers().get(0), resolution.getWinner());
-		assertEquals(12, warGame.getPot().size());
-		assertEquals(winningCard, resolution.getWinningCard());
+		assertTrue(resolution.getWinner().equals(P1));
+		assertEquals(3, resolution.getPot().size());
+		assertEquals(new Card(Rank.KING, Suit.SPADES), resolution.getWinningCard());
 	}
-
+	
+	/**
+	 * gatherEntries()
+	 */
+	@Test
+	public void gatherEntries_test() {
+		setUpWithNPlayersExceptionSafe(2);
+		
+		Player P1 = warGame.getPlayers().get(0);
+		Player P2 = warGame.getPlayers().get(1);
+		
+		P1.dealCard(aceOfSpades);
+		P2.dealCard(twoOfHearts);
+		
+		HashSet<BattleEntry> entries = warGame.gatherEntries();
+		
+		assertEquals(2, entries.size());
+		assertEquals(0, P1.getDeck().size());
+		assertEquals(0, P2.getDeck().size());
+	}
 	
 	private void setUpWithNPlayers(int players) throws TooManyPlayersException {
 		for (int i = 0; i < players; i++) {

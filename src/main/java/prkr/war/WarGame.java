@@ -6,12 +6,20 @@ import java.util.HashSet;
 
 import prkr.war.Card.Rank;
 import prkr.war.exceptions.DuplicatePlayerException;
+import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
+import util.PrintingUtil;
 
 public class WarGame {
 	
 	private ArrayList<Player> players = new ArrayList<Player>();
 	private HashSet<Card> pot = new HashSet<Card>();
+	private static PrintingUtil printingUtil;
+	
+	WarGame(PrintingUtil printingUtil) {
+		this.printingUtil = printingUtil;
+	}
+	
 	/**
 	 * Adds a player to the game. Does not accept more than 52 players 
 	 * and will not accept two players with the same name as defined by String equality
@@ -28,7 +36,9 @@ public class WarGame {
     		throw new TooManyPlayersException();
     	}
     	
-    	players.add(new Player(name));
+    	Player player = new Player(name);
+    	players.add(player);
+    	printingUtil.announcePlayerAdded(player);
     }
     
     /**
@@ -69,6 +79,9 @@ public class WarGame {
     	return this.pot;
     }
 
+    /**
+     * Refreshes the pot owned by WarGame to be empty
+     */
 	protected void refreshPot() {
 		pot = new HashSet<Card>();
 	}
@@ -91,7 +104,11 @@ public class WarGame {
 		getPot().add(card);
 	}
 
-	protected void removeIneligiblePlayers() {
+	/**
+	 * Checks every player maintained by the WarGame and removes them from the game if their deck size is < 1
+	 * @throws GameOverException 
+	 */
+	protected void removeIneligiblePlayers() throws GameOverException {
     	ArrayList<Player> playersToRemove = new ArrayList<Player>();
     	for(Player player : getPlayers()) {
     		if(player.getDeck().size() < 1) {
@@ -99,22 +116,25 @@ public class WarGame {
     		}
     	}
     	
+    	if(playersToRemove.size() == getPlayers().size()) {
+        	throw new GameOverException();
+    	}
+    	
     	for(Player player : playersToRemove) {
         	players.remove(player);
-        	// TODO = extract to gamelogger
-        	System.out.println(player + " has been eliminated.");
+        	printingUtil.announcePlayerEliminated(player);
     	}
     }
 
 	/** 
-     * This method contains the core logic for intaking and resolving a battle of War.
-     * It accepts an ArrayList of RoundEntries and proceeds to determine if there are any matches among the cards entered into the battle
-     * If there are matches, it first determines if the players involved in the matches are able to produce another card
-     * 	If their deck contains another card, a war is begun
-     * 	If their deck is empty, we resolve the matches based on suit 
+     * This method contains the core logic for starting and resolving a battle, including initiating a war
      * 
-     * Downstream calls to initWar() return here, and in the case of multiple wars among >2 players, this variant of War
-     * follows a winner-takes-all method
+     * It first determines if there are any matches among the ranks of cards submitted
+     * If there are matches, it initiates a war, adds all cards that are popped from said war to the pot, and then checks
+     * 	those new cards for matches in order to initiate another war.
+     * 
+     * When there is finally no matches in the resolved cards, it takes the latest round of cards, 
+     * finds the high card, and returns the results
      * 
      * @param battleEntries
      * @return RoundResolution
@@ -124,16 +144,13 @@ public class WarGame {
     	
     	HashMap<Rank, HashSet<BattleEntry>> mapOfPairs = identifyPairs(battleEntries);
     	HashSet<BattleEntry> entriesForLatestWar = null;
-    	
-    	while(!mapOfPairs.isEmpty() && getPlayers().size() > 1) { // Decides if there will be a war
+    	while(!mapOfPairs.isEmpty()) { // Decides if there will be a war
+    		printingUtil.announceWar(mapOfPairs);
     		entriesForLatestWar = initWar();
-        
     		addCardsToPot(entriesForLatestWar);
-    		
     		mapOfPairs = identifyPairs(entriesForLatestWar);
     	}
     	
-
     	Card highCard = null;
     	Player winner = null;
     	
@@ -144,9 +161,7 @@ public class WarGame {
     		entriesEligibleForWinning = battleEntries;
     	}
     	
-    	System.out.println("BATTLE:");
 		for(BattleEntry entry : entriesEligibleForWinning) {
-			System.out.println(entry.getPlayer().toString()+" played "+entry.getCard().toString());
 			Card card = entry.getCard();
 			Player player = entry.getPlayer();
 			
@@ -158,49 +173,66 @@ public class WarGame {
 				winner = player;
 			}
 		}
-		
-		return new BattleResolution(winner, getPot(), highCard);
+
+		BattleResolution resolution = new BattleResolution(winner, getPot(), highCard);
+		printingUtil.announceResolvedBattle(resolution);
+		return resolution;
     	
     }
-    		
+   
+    /**
+     * Takes the pot stored in WarGame and awards it to the winner stored in a BattleResolution
+     * Note: The Pot object stored in BattleResolution is primarily used for reporting and is not the source of this award
+     * @param resolution
+     */
     protected void awardWinner(BattleResolution resolution) {
 		Player battleWinner = resolution.getWinner();
 		for(Card card : getPot()) {
 			battleWinner.getDeck().addLast(card);
 		}
 	}
-	
-	protected boolean anyPlayersHaveEmptyDeck() {
-		for(Player player : getPlayers()) {
-			if(player.getDeck().isEmpty()) {
-    			return true;
-    		}
-		}
-		return false;
-	}
 
-	
 	protected HashSet<BattleEntry> initWar() {
-		ArrayList<Player> allPlayers = getPlayers();
-    	HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
-    	
-    	removeIneligiblePlayers();
     	burnACard();
-    	
-    	for(Player player : allPlayers) {
-			Card card = player.getDeck().removeFirst();
-    		battleEntries.add(new BattleEntry(card, player));
-		}
 		
-		return battleEntries;
+		return gatherEntries();
 	}
     
+	/**
+	 * Convenience method for removing a card from each players deck and adding to pot. Checks for empty decks.
+	 */
 	protected void burnACard() {
+		try {
+			removeIneligiblePlayers();
+		} catch (GameOverException e) {
+			printingUtil.announceAllPlayersAreEliminated();
+		}
+		
 		for(Player player : getPlayers()) {
 			Card card = player.getDeck().removeFirst();
 			getPot().add(card);
 		}
-		removeIneligiblePlayers();
+	}
+	
+    /**
+     * Convenience method for gathering the first card from every player. Empty deck safe
+     * @return
+     */
+	protected HashSet<BattleEntry> gatherEntries() {
+		try {
+			removeIneligiblePlayers();
+		} catch (GameOverException e) {
+			printingUtil.announceAllPlayersAreEliminated();
+		}
+		
+    	HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
+
+    	for(Player player : getPlayers()) {
+    		Card card = player.getDeck().removeFirst();
+    		entries.add(new BattleEntry(card, player));
+    	}
+    	
+    	return entries;
 	}
 	
     /**
@@ -237,15 +269,4 @@ public class WarGame {
 		
     	return matchesAndEntries;
     }
-
-	protected HashSet<BattleEntry> gatherEntries() {
-    	HashSet<BattleEntry> entries = new HashSet<BattleEntry>();
-
-    	for(Player player : getPlayers()) {
-    		Card card = player.getDeck().removeFirst();
-    		entries.add(new BattleEntry(card, player));
-    	}
-    	
-    	return entries;
-	}
 }

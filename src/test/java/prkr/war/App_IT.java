@@ -23,7 +23,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import prkr.war.Card.Rank;
 import prkr.war.Card.Suit;
 import prkr.war.exceptions.DuplicatePlayerException;
+import prkr.war.exceptions.GameOverException;
 import prkr.war.exceptions.TooManyPlayersException;
+import util.PrintingUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class App_IT {
@@ -35,16 +37,16 @@ public class App_IT {
 	
 	@Before
 	public void setUpBefore() {
-		String input = "Player1"+"\n"+"Player2"+"\n"+"next\n"+"1\n";
+		String input = "Player1"+"\n"+"Player2"+"\n"+"done\n"+"1\n"+"1\n";
 	    InputStream in = new ByteArrayInputStream(input.getBytes());
 	    System.setIn(in);
 		Scanner scanner = new Scanner(System.in);
 		
-		game = new Game(warGame, scanner);
+		game = new Game(warGame, scanner, new PrintingUtil());
 	}
 	
 	@Test
-	public void test() {		
+	public void integration_test() {		
 		BattleEntry mockBattleEntry1 = mock(BattleEntry.class);
 		BattleEntry mockBattleEntry2 = mock(BattleEntry.class);
 		
@@ -76,7 +78,11 @@ public class App_IT {
 		verify(warGame, times(1)).initiateBattle(battleEntries);
 		verify(warGame, times(1)).awardWinner(mockResolution);
 		verify(warGame, times(1)).refreshPot();
-		verify(warGame, times(1)).removeIneligiblePlayers();
+		try {
+			verify(warGame, times(1)).removeIneligiblePlayers();
+		} catch (GameOverException e) {
+			fail();
+		}
 		verify(warGame, times(3)).getPlayers();
 		Mockito.verifyNoMoreInteractions(warGame);
 	}
