@@ -3,6 +3,8 @@ package prkr.war;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import prkr.war.exceptions.DuplicatePlayerException;
 import prkr.war.exceptions.GameOverException;
@@ -17,8 +19,8 @@ import prkr.war.util.PrintingUtil;
 
 public class WarGame {
 	
-	private ArrayList<Player> players = new ArrayList<Player>();
-	private HashSet<Card> pot = new HashSet<Card>();
+	private List<Player> players = new ArrayList<Player>();
+	private Set<Card> pot = new HashSet<Card>();
 	private static PrintingUtil printingUtil;
 	
 	WarGame(PrintingUtil printingUtil) {
@@ -37,7 +39,7 @@ public class WarGame {
 		if(players.contains(new Player(name))) {
 			throw new DuplicatePlayerException();
 		}
-		if(players.size() >= 6) {
+		if(players.size() > 6) {
 			throw new TooManyPlayersException();
 		}
 		
@@ -72,7 +74,7 @@ public class WarGame {
 	 * Returns a list of players still in the game
 	 * @return
 	 */
-    public ArrayList<Player> getPlayers() {
+    public List<Player> getPlayers() {
 		return this.players;
     }
     
@@ -80,7 +82,7 @@ public class WarGame {
 	 * Getter for WarGame.Pot
 	 * @return
 	 */
-    public HashSet<Card> getPot() {
+    public Set<Card> getPot() {
 		return this.pot;
     }
 
@@ -95,7 +97,7 @@ public class WarGame {
 	 * Convenience method for adding the cards from a set of BattleEntries to the pot
 	 * @param battleEntries
 	 */
-	protected void addCardsToPot(HashSet<BattleEntry> battleEntries) {
+	protected void addCardsToPot(Set<BattleEntry> battleEntries) {
 		for(BattleEntry entry : battleEntries) {
 			addToPot(entry.getCard());
 		}
@@ -144,10 +146,10 @@ public class WarGame {
 	 * @param battleEntries
 	 * @return RoundResolution
 	 */
-    public BattleResolution initiateBattle(HashSet<BattleEntry> battleEntries) {
+    public BattleResolution initiateBattle(Set<BattleEntry> battleEntries) {
 		addCardsToPot(battleEntries);
 		
-		HashMap<Rank, HashSet<BattleEntry>> mapOfPairs = identifyPairs(battleEntries);
+		HashMap<Rank, Set<BattleEntry>> mapOfPairs = identifyPairs(battleEntries);
 		HashSet<BattleEntry> entriesForLatestWar = null;
 		while(!mapOfPairs.isEmpty()) { // Decides if there will be a war
 			printingUtil.announceWar(mapOfPairs);
@@ -159,7 +161,8 @@ public class WarGame {
 		Card highCard = null;
 		Player winner = null;
 		
-		HashSet<BattleEntry> entriesEligibleForWinning = null;
+		// Checks to see if the latest entires were from a war, if not, the entries eligible for winning are the ones we started with
+		Set<BattleEntry> entriesEligibleForWinning = null;
 		if(entriesForLatestWar != null) {
 			entriesEligibleForWinning = entriesForLatestWar;
 		} else {
@@ -246,8 +249,8 @@ public class WarGame {
 	 * @param battleEntries
 	 * @return
 	 */
-    protected HashMap<Rank, HashSet<BattleEntry>> identifyPairs(HashSet<BattleEntry> battleEntries) {
-		HashMap<Rank, HashSet<BattleEntry>> matchesAndEntries = new HashMap<Rank, HashSet<BattleEntry>>();
+    protected HashMap<Rank, Set<BattleEntry>> identifyPairs(Set<BattleEntry> battleEntries) {
+		HashMap<Rank, Set<BattleEntry>> matchesAndEntries = new HashMap<Rank, Set<BattleEntry>>();
 		
 		for(BattleEntry battleEntry : battleEntries) {
 			Rank thisRank = battleEntry.getCard().getRank();

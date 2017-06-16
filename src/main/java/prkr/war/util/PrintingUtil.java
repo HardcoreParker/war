@@ -3,6 +3,8 @@ package prkr.war.util;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import prkr.war.framework.BattleEntry;
 import prkr.war.framework.BattleResolution;
@@ -12,7 +14,7 @@ import prkr.war.framework.Card.Rank;
 
 public class PrintingUtil {
 
-	public void announceWar(HashMap<Rank, HashSet<BattleEntry>> mapOfPairs) {
+	public void announceWar(HashMap<Rank, Set<BattleEntry>> mapOfPairs) {
 		System.out.println();
 		System.out.println("WAR! The following cards initiated a war: ");
 		for(Rank rank : mapOfPairs.keySet()) {
@@ -69,14 +71,14 @@ public class PrintingUtil {
     	System.out.println("Here we GO!");
 	}
 
-	public void announcePlayerDeckSizes(ArrayList<Player> players) {
+	public void announcePlayerDeckSizes(List<Player> players) {
 		System.out.println();
 		for(Player player : players) {
 			System.out.println(player+"'s deck has "+player.getDeck().size()+" remaining.");
 		}		
 	}
 
-	public void announceGameOver(ArrayList<Player> players) {
+	public void announceGameOver(List<Player> players) {
 		System.out.println();
 		System.out.println("The game has finished! Winner is "+players);
 	}

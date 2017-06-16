@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Before;
@@ -56,7 +57,7 @@ public class WarGameTest {
 			fail();
 		}
 		
-		ArrayList<Player> players = warGame.getPlayers();
+		List<Player> players = warGame.getPlayers();
 		
 		assert(players.size() == 3);
 		assert(players.contains(new Player("One")));
@@ -84,7 +85,7 @@ public class WarGameTest {
 		
 		warGame.distributeCards(deck);
 		
-		ArrayList<Player> players = warGame.getPlayers();
+		List<Player> players = warGame.getPlayers();
 		
 		assert(players.get(0).getDeck().size() == 17);
 		assert(players.get(1).getDeck().size() == 17);
@@ -114,7 +115,7 @@ public class WarGameTest {
 		
 		warGame.distributeCards(deck);
 		
-		ArrayList<Player> players = warGame.getPlayers();
+		List<Player> players = warGame.getPlayers();
 		
 		assert(players.get(0).getDeck().size() == 8);
 	}
@@ -126,7 +127,7 @@ public class WarGameTest {
 	public void getPlayers_Test() {
 		setUpWithNPlayersExceptionSafe(1);
 		
-		ArrayList<Player> players = warGame.getPlayers();
+		List<Player> players = warGame.getPlayers();
 		
 		assertNotNull(players);
 		assertFalse(players.isEmpty());
@@ -134,7 +135,7 @@ public class WarGameTest {
 	
 	@Test
 	public void getPlayers_no_players_test() {
-		ArrayList<Player> players = warGame.getPlayers();
+		List<Player> players = warGame.getPlayers();
 		
 		assertNotNull(players);
 		assertTrue(players.isEmpty());
@@ -149,7 +150,7 @@ public class WarGameTest {
 		Card card = new Card(Rank.ACE, Suit.SPADES);
 		warGame.addToPot(card);
 		
-		HashSet<Card> pot = warGame.getPot();
+		Set<Card> pot = warGame.getPot();
 		assertNotNull(pot);
 		assertFalse(pot.isEmpty());
 		assertTrue(pot.contains(card));
@@ -158,7 +159,7 @@ public class WarGameTest {
 	
 	@Test
 	public void getPot_starts_empty_test() {
-		HashSet<Card> pot = warGame.getPot();
+		Set<Card> pot = warGame.getPot();
 		assertNotNull(pot);
 		assertTrue(pot.isEmpty());
 	}
@@ -181,13 +182,13 @@ public class WarGameTest {
 	 */
 	@Test
 	public void addCardsToPot_test() {
-		HashSet<BattleEntry> battleEntries = new HashSet<BattleEntry>();
+		Set<BattleEntry> battleEntries = new HashSet<BattleEntry>();
 		battleEntries.add(new BattleEntry(aceOfSpades, new Player("P1")));
 		battleEntries.add(new BattleEntry(twoOfHearts, new Player("P2")));
 		
 		warGame.addCardsToPot(battleEntries);
 		
-		HashSet<Card> pot = warGame.getPot();
+		Set<Card> pot = warGame.getPot();
 		
 		assertEquals(2, pot.size());
 		assert(pot.contains(aceOfSpades));
@@ -259,7 +260,7 @@ public class WarGameTest {
 		battleEntries.add(entry1);
 		battleEntries.add(entry2);
 		
-		HashMap<Rank, HashSet<BattleEntry>> matches = warGame.identifyPairs(battleEntries);
+		HashMap<Rank, Set<BattleEntry>> matches = warGame.identifyPairs(battleEntries);
 		
 		assertEquals(1, matches.size());
 		assertTrue(matches.containsKey(Rank.ACE));
@@ -285,7 +286,7 @@ public class WarGameTest {
 		battlesProposals.add(entry3);
 		battlesProposals.add(entry4);
 		
-		HashMap<Rank, HashSet<BattleEntry>> matches = warGame.identifyPairs(battlesProposals);
+		HashMap<Rank, Set<BattleEntry>> matches = warGame.identifyPairs(battlesProposals);
 		
 		assertEquals(2, matches.size());
 		assertTrue(matches.get(Rank.TWO).contains(entry1));
@@ -296,9 +297,8 @@ public class WarGameTest {
 
 	}
 	
-	// TODO - rename to identifyPairs
 	@Test
-	public void gatherMatchedEntriesAndRanks_no_matches_test() {
+	public void identifyPairs_no_matches_test() {
 		HashSet<BattleEntry> battlesProposals = new HashSet<BattleEntry>();
 		
 		BattleEntry entry1 = new BattleEntry(new Card(Rank.TWO, Suit.SPADES), new Player("Player 1"));
@@ -313,7 +313,7 @@ public class WarGameTest {
 		battlesProposals.add(entry3);
 		battlesProposals.add(entry4);
 		
-		HashMap<Rank, HashSet<BattleEntry>> matches = warGame.identifyPairs(battlesProposals);
+		HashMap<Rank, Set<BattleEntry>> matches = warGame.identifyPairs(battlesProposals);
 		
 		assertEquals(0, matches.size());
 	}
