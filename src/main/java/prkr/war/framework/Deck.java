@@ -1,7 +1,9 @@
 package prkr.war.framework;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class Deck {
 	
@@ -20,7 +22,7 @@ public class Deck {
 	}
 	
 	public void shuffle() {
-		Collections.shuffle(this.cardsList);
+		Collections.shuffle(cardsList);
 	}
 	
 }
